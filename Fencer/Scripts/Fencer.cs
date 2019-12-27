@@ -1,4 +1,23 @@
-﻿using System.Collections;
+﻿/*
+
+    FENCER - A unity helper to quickly build fence-like structures on meshes or terrains
+
+    https://github.com/dasparadoxon/Fencer
+
+    2019 written by Tom Trottel, dpgaming blog
+
+    Version 0.2.1
+
+    Any modified distribution without reference to the original is not allowed. 
+
+    Usage is free as in free software. 
+
+    I will add a proper license soon some time.
+
+*/
+
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
