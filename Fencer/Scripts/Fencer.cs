@@ -28,24 +28,34 @@ namespace FencerUtility
     {
         #region Public Fields
 
+        [HideInInspector]
         public bool debugMode = false;
 
+        [HideInInspector]
         public bool creatingMode = false;
+
+        [HideInInspector]
+        public bool isPolygon = true;
 
         public GameObject fencePrefab = null;
 
         public GameObject fenceContainer = null;
 
-        public bool isPolygon = true;
+        // The List containing the points for the fence polygon/line segments
+        // right now they can be edited by hand, but they need a own custom editor widget so they
+        // be added more easily/clearly until they can be changed by clicking on the drawn points 
+        public List<Vector3> fencePoints;
+
+        public List<Vector3> FencePoints { get => fencePoints; set => fencePoints = value; }
+
+        // this is the bool that is set when the user wants to draw a fence polygon and is used in the custom editor class
+        // to act accordingly
+        public bool CreatingMode { get => creatingMode; set => creatingMode = value; }
 
         #endregion
 
         #region Private Fields
 
-        public List<Vector3> fencePoints;
-
-        public List<Vector3> FencePoints { get => fencePoints; set => fencePoints = value; }
-        public bool CreatingMode { get => creatingMode; set => creatingMode = value; }
         #endregion
 
 
