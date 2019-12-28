@@ -37,9 +37,15 @@ namespace FencerUtility
         [HideInInspector]
         public bool isPolygon = true;
 
+        // enables the automatic shortening of a new polygonline to a length that fits to the last full fence element
+        public bool correctLength = true;
+
         public GameObject fencePrefab = null;
 
         public GameObject fenceContainer = null;
+
+        [Range(0.5f,5f)]
+        public float sizeOfDrawingPoints = 2f;
 
         // The List containing the points for the fence polygon/line segments
         // right now they can be edited by hand, but they need a own custom editor widget so they

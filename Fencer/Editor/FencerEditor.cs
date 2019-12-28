@@ -33,6 +33,8 @@ namespace FencerUtility
 
         private Fencer fencerInstance;
 
+        private Vector3 lastFullFenceElementLengthPositionSuggestion = Vector3.zero;
+
         public override void OnInspectorGUI()
         {
 
@@ -58,7 +60,7 @@ namespace FencerUtility
                 {
                     fencerInstance.isPolygon = true;
                     fencerInstance.CloseFence();
-                    
+
                 }
 
                 // button for ending the drawing without connecting the last point to the first polygon point
@@ -66,7 +68,7 @@ namespace FencerUtility
                 {
                     fencerInstance.isPolygon = false;
                     fencerInstance.CloseFence();
-                    
+
                 }
             }
 
@@ -86,9 +88,9 @@ namespace FencerUtility
             // get the current instance of the gameobject this script is attached to
             fencerInstance = (Fencer)this.target;
 
-            if(fencerInstance.GetComponent<Collider>()==null)
+            if (fencerInstance.GetComponent<Collider>() == null)
             {
-                dbg("The Object to place the fence on MUST have some sort of collider attached to it.",true);
+                dbg("The Object to place the fence on MUST have some sort of collider attached to it.", true);
             }
 
             // paints the fence polygon if there is one and the repaint event is the current event
@@ -97,7 +99,7 @@ namespace FencerUtility
 
                 List<Vector3> fencePoints = new List<Vector3>();
 
-                if(fencerInstance.FencePoints != null)
+                if (fencerInstance.FencePoints != null)
                     fencePoints = fencerInstance.FencePoints;
 
                 float fencePointDiscRadius = 1f;
@@ -118,9 +120,9 @@ namespace FencerUtility
                     else
                     {
                         Handles.color = Color.white;
+
                         Handles.DrawSolidDisc(fencePoints[fencePointIndex], Vector3.up, fencePointDiscRadius);
-                        //if(fencePoints.Count > 2)
-                        //    Handles.DrawLine(fencePoints[fencePointIndex],fencePoints[fencePointIndex+1]);
+
                         if (fencerInstance.CreatingMode & fencePointIndex > 0)
                         {
                             Handles.DrawLine(fencePoints[fencePointIndex], fencePoints[fencePointIndex - 1]);
@@ -145,6 +147,7 @@ namespace FencerUtility
             if (fencerInstance.CreatingMode)
             {
 
+
                 this.DrawCurrentMousePositionAndCurrentFencePartLine();
 
                 if (Event.current.type == EventType.Layout)
@@ -159,30 +162,35 @@ namespace FencerUtility
                 {
 
                     this.currentMousePosition = Event.current.mousePosition;
+
                     Event.current.Use();
+
                 }
 
-
+                // user pressed (right) mouse button, time to place a new polygon point
                 if (Event.current.type == EventType.MouseDown)
                 {
-
-                    Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
-
-                    RaycastHit hit;
-
-                    if (Physics.Raycast(ray, out hit))
+                    if (!fencerInstance.correctLength)
                     {
 
-                        if (hit.collider.gameObject == fencerInstance.gameObject)
+                        Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
+
+                        RaycastHit hit;
+
+                        if (Physics.Raycast(ray, out hit))
                         {
-                            fencerInstance.AddFencePoint(hit.point);
+
+                            if (hit.collider.gameObject == fencerInstance.gameObject)
+                            {
+                                fencerInstance.AddFencePoint(hit.point);
+                            }
+
                         }
+                    }
 
-                        //Debug.DrawLine(ray.origin, hit.point, Color.red);
-                        //Debug.Log(hit.point);
-                        //dbg("Mouse Hit clicked on Scene View at : " + hit.point.ToString());
-                        //dbg("Hit Object with Name : "+hit.collider.gameObject.name);
-
+                    if (fencerInstance.correctLength)
+                    {
+                            fencerInstance.AddFencePoint(this.lastFullFenceElementLengthPositionSuggestion);
                     }
 
                     Event.current.Use();
@@ -206,7 +214,7 @@ namespace FencerUtility
                 if (hitMousePointer.collider.gameObject == fencerInstance.gameObject)
                 {
 
-                    Handles.DrawSolidDisc(hitMousePointer.point, Vector3.up, 2f);
+                    Handles.DrawSolidDisc(hitMousePointer.point, Vector3.up, fencerInstance.sizeOfDrawingPoints);
 
                     // Draw a line from the last fence point to the current mouse position
                     if (fencerInstance.FencePoints.Count > 0)
@@ -226,14 +234,43 @@ namespace FencerUtility
                         // calculate how many elements of the prefab would fit
                         int numberOfFencesThatWouldFitOnTheNewLineSegment = (int)(length / lengthOfFencePrefab);
 
+                        // draw points showing the new fence elements
                         for (int i = 0; i < numberOfFencesThatWouldFitOnTheNewLineSegment; i++)
                         {
                             Handles.color = Color.red;
-                            Handles.DrawSolidDisc(previousSetFencerPoint + ((direction * lengthOfFencePrefab) * (i + 1)), Vector3.up, 0.5f);
+
+                            Handles.DrawSolidDisc(previousSetFencerPoint + ((direction * lengthOfFencePrefab) * (i + 1)), Vector3.up, 
+                            fencerInstance.sizeOfDrawingPoints/2);
                         }
 
+                        // this is the point needed for automatically correction of the edge length, so that always a correct closing of the 
+                        // fence number happens. 
+                        // note that a 0.01 amount is added to the length, so that there is in every case a minimal overlength so that the 
+                        // fence placing loop works correct in every case
+
+                        this.lastFullFenceElementLengthPositionSuggestion =
+                            previousSetFencerPoint + 
+                            ((direction * lengthOfFencePrefab) * (numberOfFencesThatWouldFitOnTheNewLineSegment + 1)
+                            + (direction * (lengthOfFencePrefab*0.01f)) );
+
                         Handles.color = Color.white;
+
                         Handles.DrawLine(previousSetFencerPoint, hitMousePointer.point);
+
+                        // calculate how much the current position has reached a new fence element length
+                        float amountOfLengthForANewFenceElement = (length % lengthOfFencePrefab);
+
+                        // calculate how much more length is need for a new fence element to be placed
+                        float amountNeededToBeAbleToPlaceANewFenceLement = lengthOfFencePrefab - amountOfLengthForANewFenceElement;
+
+                        /*
+                        Handles.color = Color.yellow;
+
+                        Handles.DrawSolidDisc(previousSetFencerPoint 
+                        + ((direction * numberOfFencesThatWouldFitOnTheNewLineSegment) +
+                        (direction * amountNeededToBeAbleToPlaceANewFenceLement)), Vector3.up, 0.5f);
+                        */
+
                     }
                 }
             }
