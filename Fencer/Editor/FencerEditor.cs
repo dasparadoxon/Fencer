@@ -42,6 +42,8 @@ namespace FencerUtility
 
             base.OnInspectorGUI();
 
+
+
             Fencer fencerInstance = (Fencer)target;
 
             if (!fencerInstance.CreatingMode)
@@ -51,6 +53,8 @@ namespace FencerUtility
                 {
                     fencerInstance.CreateFence();
                 }
+
+                lastFullFenceElementLengthPositionSuggestion = Vector3.zero;
             }
             else
             {
@@ -170,7 +174,7 @@ namespace FencerUtility
                 // user pressed (right) mouse button, time to place a new polygon point
                 if (Event.current.type == EventType.MouseDown)
                 {
-                    if (!fencerInstance.correctLength)
+                    if (!fencerInstance.correctLength || lastFullFenceElementLengthPositionSuggestion == Vector3.zero)
                     {
 
                         Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
@@ -187,10 +191,11 @@ namespace FencerUtility
 
                         }
                     }
+                    else
 
                     if (fencerInstance.correctLength)
                     {
-                            fencerInstance.AddFencePoint(this.lastFullFenceElementLengthPositionSuggestion);
+                        fencerInstance.AddFencePoint(this.lastFullFenceElementLengthPositionSuggestion);
                     }
 
                     Event.current.Use();
@@ -239,8 +244,8 @@ namespace FencerUtility
                         {
                             Handles.color = Color.red;
 
-                            Handles.DrawSolidDisc(previousSetFencerPoint + ((direction * lengthOfFencePrefab) * (i + 1)), Vector3.up, 
-                            fencerInstance.sizeOfDrawingPoints/2);
+                            Handles.DrawSolidDisc(previousSetFencerPoint + ((direction * lengthOfFencePrefab) * (i + 1)), Vector3.up,
+                            fencerInstance.sizeOfDrawingPoints / 2);
                         }
 
                         // this is the point needed for automatically correction of the edge length, so that always a correct closing of the 
@@ -249,9 +254,9 @@ namespace FencerUtility
                         // fence placing loop works correct in every case
 
                         this.lastFullFenceElementLengthPositionSuggestion =
-                            previousSetFencerPoint + 
+                            previousSetFencerPoint +
                             ((direction * lengthOfFencePrefab) * (numberOfFencesThatWouldFitOnTheNewLineSegment + 1)
-                            + (direction * (lengthOfFencePrefab*0.01f)) );
+                            + (direction * (lengthOfFencePrefab * 0.01f)));
 
                         Handles.color = Color.white;
 
