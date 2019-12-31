@@ -38,8 +38,6 @@ namespace FencerUtility
         public override void OnInspectorGUI()
         {
 
-            //dbg("Current Event OnInspectorGUI : " + Event.current.type.ToString());
-
             base.OnInspectorGUI();
 
 

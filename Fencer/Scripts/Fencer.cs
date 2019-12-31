@@ -28,8 +28,8 @@ namespace FencerUtility
     {
         #region Public Fields
 
-        [HideInInspector]
-        public bool debugMode = false;
+
+        public bool debugMode = true;
 
         [HideInInspector]
         public bool creatingMode = false;
@@ -44,7 +44,7 @@ namespace FencerUtility
 
         public GameObject fenceContainer = null;
 
-        [Range(0.5f,5f)]
+        [Range(0.5f, 5f)]
         public float sizeOfDrawingPoints = 2f;
 
         // The List containing the points for the fence polygon/line segments
@@ -114,6 +114,8 @@ namespace FencerUtility
             for (var currentFencePointIndex = 0; currentFencePointIndex < this.fencePoints.Count; currentFencePointIndex++)
             {
 
+                dbg("Hi");
+
                 Vector3 firstPoint = this.fencePoints[currentFencePointIndex];
 
                 Vector3 secondPoint = Vector3.zero;
@@ -159,7 +161,7 @@ namespace FencerUtility
 
                     RaycastHit hit;
                     // Does the ray intersect any objects excluding the player layer
-                    if (Physics.Raycast(firstPointPartialEdgeForFenceElement + new Vector3(0,5f,0), transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity))
+                    if (Physics.Raycast(firstPointPartialEdgeForFenceElement + new Vector3(0, 5f, 0), transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity))
                     {
 
                         if (hit.collider.gameObject == this.gameObject)
@@ -169,7 +171,7 @@ namespace FencerUtility
                         }
                     }
 
-                    if (Physics.Raycast(secondPointPartialEdgeForFenceElement + new Vector3(0,5f,0) , transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity))
+                    if (Physics.Raycast(secondPointPartialEdgeForFenceElement + new Vector3(0, 5f, 0), transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity))
                     {
                         if (hit.collider.gameObject == this.gameObject)
                         {
@@ -192,25 +194,19 @@ namespace FencerUtility
 
                     Vector3 normalVectorOfBothEdges = Vector3.Cross(point1, point2);
 
-                    if (point1.z >= 0 && point1.x >= 0)
-                        normalVectorOfBothEdges = Vector3.Cross(point1, point2);
+                    // here we have to correct the order of the cross point values due to the right hand rule
+                    // to get the correct angle cause the cross dot product only delivers angles of 180° 
 
-                    if (point1.z < 0 && point1.x >= 0)
+                    if (partialEdgeVector.x >= 0 && partialEdgeVector.y >= 0 && partialEdgeVector.z >= 0)
                         normalVectorOfBothEdges = Vector3.Cross(point2, point1);
 
-                    if (point1.z < 0 && point1.x < 0)
+                    if (partialEdgeVector.x >= 0 && partialEdgeVector.y >= 0 && partialEdgeVector.z < 0)
                         normalVectorOfBothEdges = Vector3.Cross(point2, point1);
 
-                    if (point1.z >= 0 && point1.x < 0)
-                        normalVectorOfBothEdges = Vector3.Cross(point1, point2);
+                    if (partialEdgeVector.x < 0 && partialEdgeVector.y >= 0 && partialEdgeVector.z < 0)
+                        normalVectorOfBothEdges = Vector3.Cross(point2, point1);
 
-                    if (point1.z < 0 && point1.x >= 0 && point1.y < 0)
-                        normalVectorOfBothEdges = Vector3.Cross(point1, point2);
-
-                    if (point1.z < 0 && point1.x < 0 && point1.y < 0)
-                        normalVectorOfBothEdges = Vector3.Cross(point1, point2);
-
-                    if (point1.z >= 0 && point1.x < 0 && point1.y >= 0)
+                    if (partialEdgeVector.x < 0 && partialEdgeVector.y >= 0 && partialEdgeVector.z >= 0)
                         normalVectorOfBothEdges = Vector3.Cross(point2, point1);
 
                     Vector3 positionCrossDot = normalVectorOfBothEdges.normalized * 0.5f;
@@ -228,9 +224,9 @@ namespace FencerUtility
 
                     newFenceElement.transform.Rotate(new Vector3(0, 0, signedAngle), Space.Self);
 
-                    /*newFenceElement.name = "[" + i + "] | P1 : " + point1.ToString() + " | P2 : " + point2.ToString();*/
+                    newFenceElement.name = "[" + i + "] | partialEdgeVector : " + partialEdgeVector.ToString();
 
-                    newFenceElement.name += " (" + i + ")";
+                    //newFenceElement.name += " (" + i + ")";
 
                     newFenceElement.transform.parent = this.fenceContainer.transform;
 
