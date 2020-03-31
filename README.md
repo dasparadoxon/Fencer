@@ -8,3 +8,5 @@ How to use Fencer
 e.g. a terrain or a plane.
 
 ! Make sure the object has a collider on it so that the fencer 
+
+2. A fencer privot pivot point can be in the center (bottom) or at the right left end. thats up to you, if its center, then set the corresponding checkbox.
